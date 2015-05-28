@@ -1,0 +1,72 @@
+from factory import app
+from flask.ext.sqlalchemy import SQLAlchemy
+#from conftest import test_app
+
+#if test_app('config.TESTING') == True:
+#	from factory import app
+#	print "inside models"
+#	print config.SQLALCHEMY_DATABASE_URI
+#else:
+#	from conftest import app
+#	print "inside models"
+#	print config.SQLALCHEMY_DATABASE_URI
+	
+db = SQLAlchemy(app)
+
+
+#assertion table for task and staff
+tasks = db.Table('tasks',
+      db.Column('staff_id',db.Integer,db.ForeignKey('staff.id')),
+      db.Column('task_id',db.Integer,db.ForeignKey('task.id'))
+     )
+      
+     
+#database model for Staff 
+class Staff(db.Model):
+	
+	__tablename__= "staff"
+	id = db.Column(db.Integer,primary_key=True)
+	name = db.Column(db.String(64),index=True,unique=True)
+	skill= db.Column(db.String(20))
+	tasks =db.relationship('Task',secondary=tasks)
+
+	#def __init__(self):
+	#	self.id = None
+	#	self.name = None 
+	#	self.skill= None
+		
+	def __init__(self,id,name,skill): # def __init__(self, colNames): # colName = ['id', 'name', 'skill']
+		self.id = id
+		self.name = name
+		self.skill = skill
+	
+	def __repr__(self):
+		return '<%r %s %s>' %(self.id,self.name,self.skill)
+		
+		
+
+#db model for Task Table
+class Task(db.Model):
+	__tablename__ = "task"
+	id = db.Column(db.Integer,primary_key = True)
+	name = db.Column(db.String(64),index=True,unique=True)
+	client= db.Column(db.String(50),index=True,unique=True)
+	capabilities = db.Column(db.String(40))
+	duration = db.Column(db.Integer)
+	#staff = db.relationship(Staff)
+   
+	def __init__(self,id,name,client,capabilities,duration):
+		self.id = id
+		self.name = name
+		self.client = client
+		self.capabilities = capabilities
+		self.duration = duration
+
+   
+	def __repr__(self):
+		return '[%r %s %s %s %r]' %(self.id,self.name,self.client,self.capabilities,self.duration)
+
+   
+   
+     
+     

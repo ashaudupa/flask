@@ -1,0 +1,206 @@
+import pytest
+from app.db_queries import *
+from app.models import db,Staff,Task
+
+
+def test_staff_query(application):
+	""" Tests staff_query function of db_queries"""
+	
+	staff_delete()
+	staff = Staff(1,'Asha','python')
+	try:
+		db.session.add(staff)
+		db.session.commit()
+	except:
+		db.session.rollback()
+		
+	s = staff_query()
+	assert s[0].id == 1
+	assert s[0].name == 'Asha'
+	assert s[0].skill == 'python'
+	
+	#checking for empty list
+	staff_delete()
+	
+	assert staff_query() == []
+
+
+staff_list = [['asha','python'],['akshay','java'],['akshatha','.net']]
+
+def test_staff_insert(application):
+	""" Testing staff_insert function of db_queries module """
+	staff_delete()
+	
+	for staff in staff_list:
+		r_staff = staff_insert(staff[0],staff[1])
+	#r = staff_insert('ganesh','python')
+	s = Staff.query.all()
+	assert s[0].name == 'ASHA'
+	assert s[0].skill == 'PYTHON'
+	assert s[1].name == 'AKSHAY'
+	assert s[1].skill == 'JAVA'
+	assert s[2].name == 'AKSHATHA'
+	assert s[2].skill == '.NET'
+	
+	#staff_delete()
+	
+def test_staff_insert_exceptions():
+	
+	staff_delete()
+	
+	return_message = staff_insert('usha','python')
+	assert return_message == "Staff is added successfully"
+	
+ 	return_message = staff_insert('usha','c')
+ 	assert return_message == "Staff Name is already exists "
+ 	
+ 	#staff_delete()
+ 	
+
+def test_staff_filter():
+	"""Tesing Staff_filter_query function of db_queries """
+	staff_delete()
+	
+	for staff in staff_list:
+		r_staff = staff_insert(staff[0],staff[1])
+	res = staff_insert('usha','python')	
+	
+	#Find staffs who have python skill
+	skill = 'PYTHON'
+	staffs = staff_filter_query(skill)
+	res_set = set()
+	for staff in staffs:
+		res_set.add(staff.name)
+		
+	assert res_set == set(['ASHA','USHA'])	
+	
+	skill = 'C'
+	staffs = staff_filter_query(skill)
+	
+	assert staffs == []
+	
+def test_staff_delete():
+	''' testing staff_delete function of db_queries '''
+	staff_delete()
+	for staff in staff_list:
+		r_staff = staff_insert(staff[0],staff[1])
+		
+	staffs = Staff.query.all()
+	assert staffs != []
+	
+	staff_delete()
+	staffs = Staff.query.all()
+	assert staffs == []
+	
+		
+
+def test_task_query():
+	'''Tests task_query() of db_queries.py module 
+	   Inserting value directely to Staff table
+	   And querying from task_query() 
+	   if both values matches test is success 
+	   '''
+	task_delete()   
+	task = Task(1,'admin','sdf','sql',6)
+	try:
+		db.session.add(task)
+		db.session.commit()
+	except:
+		db.session.rollback()
+		
+	return_task = task_query()
+	assert return_task[0].name == 'admin'
+	assert return_task[0].client == 'sdf'
+	assert return_task[0].capabilities == 'sql'
+	assert return_task[0].duration == 6
+	
+	try:
+		db.session.delete(return_task[0])
+		db.session.commit()
+	except:
+		db.session.rollback()	
+	
+	empty_task = task_query()
+	assert empty_task == []
+			   				
+task_list = [['Programming','abc','python',15],['Testing','cde','java',10],['database','efg','sql',6]]	
+	
+def test_task_insert():
+	''' Tests task_insert() of db_queries module '''
+	task_delete()
+		
+	for task in task_list:
+		res = task_insert(task[0],task[1],task[2],task[3])
+		
+	#querying db model directly
+	db.session.flush()
+	res_tasks = Task.query.all()
+	
+	#validating the result
+	assert res_tasks[0].name == 'PROGRAMMING'
+	assert res_tasks[0].client == 'ABC'
+	assert res_tasks[0].capabilities == 'PYTHON'
+	assert res_tasks[0].duration == 15
+	assert res_tasks[1].name == 'TESTING'
+	assert res_tasks[1].client == 'CDE'
+	assert res_tasks[1].capabilities == 'JAVA'
+	assert res_tasks[1].duration == 10
+	assert res_tasks[2].name == 'DATABASE'
+	assert res_tasks[2].client == 'EFG'
+	assert res_tasks[2].duration == 6
+	assert res_tasks[2].capabilities == 'SQL'
+	
+	#task_delete()			
+	
+def test_task_insert_exception():
+	''' tesing exceptions in task_insert() 
+	by giving same task name 2 times
+	check that function handling this Integrity Error 
+	'''
+	task_delete()
+	
+	res_message = task_insert('Debugging','abd','.net',10)
+	assert res_message == "Task Entry successfully done"
+	
+	res_message = task_insert('Debugging','bcd','.net',6)
+	assert res_message == "Task name already exits"
+	
+def test_task_filter_query():
+	''' Testing task_filter_query() '''
+	task_delete()
+	
+	for task in task_list:
+		res = task_insert(task[0],task[1],task[2],task[3])	
+	task_name = 'TESTING'	
+	filtered_task = task_filter_query(task_name)
+	assert filtered_task[0].name == 'TESTING'
+	assert filtered_task[0].capabilities == 'JAVA' 
+	
+def test_task_delete():
+	
+	tasks = task_query()
+	try:
+		for task in tasks:
+			db.session.delete(task)
+		db.session.commit()
+	except:
+		db.session.rollback()
+	
+			
+	r = task_insert('Testing','abc','python',10)
+	tasks_after_insert = task_query()
+	assert tasks_after_insert[0].name == 'TESTING'
+	assert tasks_after_insert[0].client == 'ABC'
+	assert tasks_after_insert[0].capabilities == 'PYTHON'
+	assert tasks_after_insert[0].duration == 10
+	
+	task_delete()
+	tasks_after_delete = task_query()
+	assert tasks_after_delete == []
+		
+		
+				
+	
+	
+
+

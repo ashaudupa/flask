@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block content %}
+   <h2> Result page</h2>
+   {% for message in get_flashed_messages() %}
+      <div class="flash"> {{ message }} </div>
+   {% endfor %}
+   <form action = "{{ url_for("result.skilled_staff") }}" method = "post">
+      <h3> List of Tasks </h3>
+      <ol>
+      {% for task in task_list %}
+         <li> {{task}} </li>
+      {% endfor %}
+      </ol> 	
+      {{ form.hidden_tag() }}
+      {{ form.task_name.label }}
+      {{ form.task_name }}
+      <br>
+      {{ form.assign }}
+      <br>
+      <h4> Working Staff for the given Task </h4>
+      <ol>    
+      {% for staff in staff_list %}
+            <li>{{ staff }} </li>
+      {% endfor %}
+      </ol>
+   </form>
+{% endblock %}
+
